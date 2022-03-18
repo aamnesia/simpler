@@ -1,4 +1,6 @@
 require 'erb'
+require_relative 'view/plain'
+require_relative 'view/html'
 
 module Simpler
   class View
@@ -10,9 +12,7 @@ module Simpler
     end
 
     def render(binding)
-      template = File.read(template_path)
-
-      ERB.new(template).result(binding)
+      render_template.result(binding)
     end
 
     private
@@ -31,8 +31,17 @@ module Simpler
 
     def template_path
       path = template || [controller.name, action].join('/')
-
       Simpler.root.join(VIEW_BASE_PATH, "#{path}.html.erb")
+    end
+
+    def render_template
+      template = @env['simpler.template']
+
+      if template.is_a? Hash
+        Plain.new(template) if template.has_key?(:plain)
+      else
+        Html.new(template_path)
+      end
     end
 
   end
